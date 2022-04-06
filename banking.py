@@ -1,3 +1,8 @@
+#TO DO
+    #change self.groceriesKeys from list to self.purchaseKeys.grocery. 
+    #ensure you can iterate correctly on list to dictionary change in groceries()
+
+
 
 from ensurepip import version
 import numpy
@@ -10,24 +15,31 @@ from threading import Timer
 from difflib import SequenceMatcher
 import operator
 import util
+import time
 
 class banking():
     testfile = '/Users/gillhawkes1/Documents/cc/ccstatement.csv'
     shorttestfile = '/Users/gillhawkes1/Documents/cc/ccstatement2.csv'
     mypath = '/Users/gillhawkes1/Documents/cc/'
+
+    #
     tasks = ['Calculate Groceries','Greet','Calculate Expenses','Other']
 
+    #nested dictionary for all locations, built into different default groups for calculating spending
+    #key-values are only for searching through csv files-displaying messages to user
+    #accessing by: self.purchaseKeys['grocery']['aldi'] would == 'Aldi'
     purchaseKeys = {
-        'grocery': {'aldi', 'publix', 'trader', 'foods'},
+        'grocery': {'aldi':'Aldi','publix':'Publix','trader':"Trader Joe's",'foods':"Lowe's Foods"},
         'drink': {'brewery','brewing'},
         'medical': {'dermatology'},
-        'gas' : {'eleven','exxon','bp','shell'},
+        'gas' : {'eleven':'7-Eleven','exxon':'Exxon','bp':'BP','shell':'Shell'},
         'subs': {'netflix'},
-        'shopping': {'target'}
+        'shopping': {'target','Target'}
     }
     groceriesKeys = ['aldi','publix']
 
 
+    #get a unique list of locations from a file and return the top occurring words
     def readLocations(self,myfile):
         headerList = ['date','amt','star','NaN','location']
         myfile = pd.read_csv(myfile,names=headerList,usecols=['date','amt','location'])
@@ -43,6 +55,9 @@ class banking():
         print(locwords)
         #return self.parseLocations(locwords)
 
+    #may need to delete this as i don't use it anymore
+    #could come up with a new way of doing this?
+    #it was supposed to be for parsing order numbers appended to end of amazon orders 
     def parseLocations(self,locations):
         substr_cts={}
         for i in range(0, len(locations)):
@@ -59,6 +74,7 @@ class banking():
         substr_cts = dict(sorted(substr_cts.items(), key=lambda item: item[1],reverse=True))
         return substr_cts
         
+    #get the most recent edited/downloaded csv file. will work as long as an older file is not edited
     def getRecent(self):
         hasfiles = os.listdir(self.mypath)
         if len(hasfiles) > 0:
@@ -74,10 +90,12 @@ class banking():
             recent_file = max(cc_files,key=os.path.getctime)
             return recent_file
             
+    #get a file, and make sure it exists
     def getFile(self,filename):
-        fpath = '/Users/gillhawkes1/Documents/cc/'+filename+'.csv'
+        fpath = self.mypath+filename+'.csv'
         return pd.read_csv(fpath) if os.path.isfile(fpath) else False
 
+    #perform the grocery task for spending
     def groceries(self):
         print('---------------------------------------------')
         print('Your current grocery keys are: [' + ', '.join(self.groceriesKeys) + ']')
@@ -92,18 +110,39 @@ class banking():
             else:
                 self.groceriesKeys.append(mykeywords)
             print(self.groceriesKeys)
+        else:
+            mykeywords = self.groceriesKeys
 
         myfile = self.getRecent()
         print('Detected the most recent file as: '+ myfile)
         print('Run this file? y/n')
         runfile = input()
+        while runfile not in ('y','n'):
+            util.clear()
+            print('----------------------------------')
+            print('You must type a y/n response. Please try again.')
+            time.sleep(2)
+            print('----------------------------------')
+            print('Detected the most recent file as: '+ myfile)
+            print('Run this file (y) or pick another file (n) y/n')
+            runfile = input()
         if runfile == 'n':
-            print('Type the file name from path ' + self.mypath)
+            print('The current file path is ' + self.mypath)
+            time.sleep(1)
+            print('Files in this path (please choose one):')
+            cc_files = glob.glob(self.mypath + '*.csv')
+            files_nopath = []
+            for file in cc_files:
+                fname = os.path.basename(file)
+                fname = os.path.splitext(fname)[0]
+                files_nopath.append(fname)
+            print(files_nopath)
             newfile = input() + '.csv'
             while os.path.isfile(self.mypath + newfile) == False:
-                print('Please type a valid file.')
+                print('Please type a valid file. Choose from this list:')
+                print(files_nopath)
                 newfile = input() + '.csv'
-        elif runfile == 'y':
+            
             headerList = ['date','amt','star','NaN','location']
             myfile = pd.read_csv(myfile,names=headerList,usecols=['date','amt','location'])
             total = 0
@@ -116,13 +155,9 @@ class banking():
                     total += j.amt
             print('----------------------------------')
             print('Your total spending for this file for [' + ','.join(mykeywords) + '] is: ')
-            print('$' + total)
+            print('$' + str(round(total,2)))
 
-
-        else:
-            print('Please enter either y/n. Would you like to run this file?')
-
-
+    #calculate spending from a list of your choosing
     def calcFromList(self,myfile,keywords=[],dateRange=False):
         headerList = ['date','amt','star','NaN','location']
         myfile = pd.read_csv(myfile,names=headerList,usecols=['date','amt','location'])
@@ -143,6 +178,7 @@ class banking():
         #print('$'+total)
         print(total)
 
+    #ask user what task they would like to perform from a numbered list
     def callTask(self):
         print('----------------------------------')
         print('What would you like to do? Type the number and press enter.')
@@ -153,6 +189,7 @@ class banking():
         res = int(res)-1
         return res
 
+    #from a list of tasks
     def doTask(self,task):
         if task == 'Calculate Groceries':
             self.groceries()
@@ -178,16 +215,17 @@ class banking():
         print('Hello, ' + who.capitalize() + '!')
 
     def main(self):
-        task = self.callTask()
-        if task >= len(self.tasks):
-
+        chosentask = self.callTask()
+        while chosentask >= len(self.tasks):
+            util.clear()
             print('----------------------------------')
             print('You must type a number in range. Please try again.')
+            time.sleep(2)
             return self.main()
         else:
-            task = self.tasks[task]
+            chosentask = self.tasks[chosentask]
 
-        self.doTask(task)
+        self.doTask(chosentask)
 
     
 
@@ -195,5 +233,5 @@ class banking():
 #-------------------------------------------------------------------------#
 
 test = banking()
-#test.main()
-print(test.readLocations(test.testfile))
+test.main()
+#print(test.readLocations(test.testfile))
