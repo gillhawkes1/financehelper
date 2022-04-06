@@ -1,8 +1,8 @@
 import os
 import sys
 
-#class util():
 
+#clear your console depending on your operating system 
 def clear():
     mysystem = sys.platform
     #myos = os.name
@@ -15,6 +15,7 @@ def clear():
         return False
     os.system(clear)
 
+#get your systems version
 def version():
     print(sys.version)
 
