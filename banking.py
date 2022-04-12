@@ -104,12 +104,14 @@ class banking():
         if morekeys.lower() == 'y':
             print('Type your additional key(s) separated by a comma.')
             mykeywords = input()
-            if len(mykeywords.lower().split(',')) > 1:
+            if ',' in mykeywords:
                 mykeywords = mykeywords.lower().split(',')
+                mykeywords = [i.lstrip() for i in mykeywords]
+
                 self.groceriesKeys += mykeywords
             else:
+
                 self.groceriesKeys.append(mykeywords)
-            print(self.groceriesKeys)
         else:
             mykeywords = self.groceriesKeys
 
@@ -121,7 +123,7 @@ class banking():
             util.clear()
             print('----------------------------------')
             print('You must type a y/n response. Please try again.')
-            time.sleep(2)
+            time.sleep(1)
             print('----------------------------------')
             print('Detected the most recent file as: '+ myfile)
             print('Run this file (y) or pick another file (n) y/n')
@@ -143,19 +145,19 @@ class banking():
                 print(files_nopath)
                 newfile = input() + '.csv'
             
-            headerList = ['date','amt','star','NaN','location']
-            myfile = pd.read_csv(myfile,names=headerList,usecols=['date','amt','location'])
-            total = 0
+        headerList = ['date','amt','star','NaN','location']
+        myfile = pd.read_csv(myfile,names=headerList,usecols=['date','amt','location'])
+        total = 0
 
-            for i,j in myfile.iterrows():
-                j.amt = abs(j.amt)
-                j.location = j.location.lower()
+        for i,j in myfile.iterrows():
+            j.amt = abs(j.amt)
+            j.location = j.location.lower()
 
-                if re.search('|'.join(mykeywords),j.location):
-                    total += j.amt
-            print('----------------------------------')
-            print('Your total spending for this file for [' + ','.join(mykeywords) + '] is: ')
-            print('$' + str(round(total,2)))
+            if re.search('|'.join(self.groceriesKeys),j.location):
+                total += j.amt
+        print('----------------------------------')
+        print('Your total spending for this file for [' + ','.join(self.groceriesKeys) + '] is: ')
+        print('$' + str(round(total,2)))
 
     #calculate spending from a list of your choosing
     def calcFromList(self,myfile,keywords=[],dateRange=False):
@@ -233,5 +235,6 @@ class banking():
 #-------------------------------------------------------------------------#
 
 test = banking()
-test.main()
+print(test.purchaseKeys['grocery'].keys())
+#test.main()
 #print(test.readLocations(test.testfile))

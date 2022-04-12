@@ -5,7 +5,6 @@ import sys
 #clear your console depending on your operating system 
 def clear():
     mysystem = sys.platform
-    #myos = os.name
     clear = ''
     if mysystem == 'darwin' or mysystem == 'linux':
         clear = 'clear'
