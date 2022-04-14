@@ -16,6 +16,7 @@ from difflib import SequenceMatcher
 import operator
 import util
 import time
+from datetime import datetime
 
 class banking():
     testfile = '/Users/gillhawkes1/Documents/cc/ccstatement.csv'
@@ -23,7 +24,7 @@ class banking():
     mypath = '/Users/gillhawkes1/Documents/cc/'
 
     #
-    tasks = ['Calculate Groceries','Greet','Calculate Expenses','Other']
+    tasks = ['Calculate Groceries','Calculate Utilities','Greet','Calculate Expenses','Other']
 
     #nested dictionary for all locations, built into different default groups for calculating spending
     #key-values are only for searching through csv files-displaying messages to user
@@ -34,7 +35,8 @@ class banking():
         'medical': {'dermatology'},
         'gas' : {'eleven':'7-Eleven','exxon':'Exxon','bp':'BP','shell':'Shell'},
         'subs': {'netflix'},
-        'shopping': {'target','Target'}
+        'shopping': {'target','Target'},
+        'utilities': {'water'}
     }
     groceriesKeys = ['aldi','publix']
 
@@ -73,6 +75,46 @@ class banking():
                         substr_cts[substr_match]+=1
         substr_cts = dict(sorted(substr_cts.items(), key=lambda item: item[1],reverse=True))
         return substr_cts
+
+    def parseDates(self,file):
+        format = ''
+        fname = os.path.basename(file)
+        fname = os.path.splitext(fname)[0]
+        
+
+        #myformat = '%Y-%m-%d'
+        #newformat = '%d %B, %Y'
+        #dateobj = datetime.strptime(mydate,myformat).strftime(newformat)
+
+        #get formatting from file name
+        if 'ally' in fname:
+            format = '%Y-%m-%d'
+            filecols = ['Date', 'Time', 'Amount', 'Type', 'Description']
+            file = pd.read_csv(file,names=filecols,usecols=filecols,header=0,parse_dates={'date':['Date']})
+            #file['Datet'] = pd.to_datetime(file.Date,infer_datetime_format=False)
+            print(file)
+            mydatecol = 'Date'
+        elif 'wells' in fname:
+            format = '%m/%d/%Y'
+            colnames = ['date','amt','star','NaN','location']
+        elif 'secu' in fname:
+            format = ''
+        elif 'discover' in fname:
+            format = ''
+        else:
+            print('File does not specify where it was downloaded from.')
+            return False
+        myformat = '%d %B, %Y'
+        #for i,j in file.iterrows():
+            #thisdate = datetime.strptime(j[mydatecol],format).strftime(myformat)
+            #print(j.date)
+
+            #mydate = '2022-03-25'
+            #myformat = '%Y-%m-%d'
+            #newformat = '%d %B, %Y'
+            #dateobj = datetime.strptime(mydate,myformat).strftime(newformat)
+            #print(dateobj)
+
         
     #get the most recent edited/downloaded csv file. will work as long as an older file is not edited
     def getRecent(self):
@@ -159,6 +201,11 @@ class banking():
         print('Your total spending for this file for [' + ','.join(self.groceriesKeys) + '] is: ')
         print('$' + str(round(total,2)))
 
+    def utilities(self):
+        recentfile = self.getRecent()
+        rfile = pd.read_csv(recentfile)
+        self.parseDates(recentfile)
+
     #calculate spending from a list of your choosing
     def calcFromList(self,myfile,keywords=[],dateRange=False):
         headerList = ['date','amt','star','NaN','location']
@@ -195,6 +242,8 @@ class banking():
     def doTask(self,task):
         if task == 'Calculate Groceries':
             self.groceries()
+        elif task == 'Calculate Utilities':
+            self.utilities()
         elif task == 'Greet':
             self.greet()
         elif task == 'Calculate Expenses':
@@ -235,6 +284,5 @@ class banking():
 #-------------------------------------------------------------------------#
 
 test = banking()
-print(test.purchaseKeys['grocery'].keys())
-#test.main()
+test.main()
 #print(test.readLocations(test.testfile))
