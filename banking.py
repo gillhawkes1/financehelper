@@ -186,10 +186,23 @@ class banking():
                 print('Please type a valid file. Choose from this list:')
                 print(files_nopath)
                 newfile = input() + '.csv'
+            if newfile:
+                print('newfile has been selected: '+ newfile)
+                #myfile = newfile
+                myfile = '/Users/gillhawkes1/Documents/cc/'+newfile
             
         headerList = ['date','amt','star','NaN','location']
         myfile = pd.read_csv(myfile,names=headerList,usecols=['date','amt','location'])
         total = 0
+
+        #datetime.strptime(d1, "%Y-%m-%d")
+        mindate = datetime.strptime(min(myfile.date),'%m/%d/%Y')
+        maxdate = datetime.strptime(max(myfile.date),'%m/%d/%Y')
+        dayspan = abs(maxdate-mindate).days
+        weeks = round(dayspan/7,1)
+        print(weeks)
+        
+        
 
         for i,j in myfile.iterrows():
             j.amt = abs(j.amt)
@@ -200,6 +213,7 @@ class banking():
         print('----------------------------------')
         print('Your total spending for this file for [' + ','.join(self.groceriesKeys) + '] is: ')
         print('$' + str(round(total,2)))
+        print('You spent an average of $' + str(round(total/weeks,2)) + ' per week, over a span of ' + str(weeks) + ' weeks on groceries.')
 
     def utilities(self):
         recentfile = self.getRecent()
@@ -266,6 +280,7 @@ class banking():
         print('Hello, ' + who.capitalize() + '!')
 
     def main(self):
+        util.clear()
         chosentask = self.callTask()
         while chosentask >= len(self.tasks):
             util.clear()
