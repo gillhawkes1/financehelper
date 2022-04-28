@@ -189,7 +189,7 @@ class banking():
             if newfile:
                 print('newfile has been selected: '+ newfile)
                 #myfile = newfile
-                myfile = '/Users/gillhawkes1/Documents/cc/'+newfile
+                myfile = self.mypath+newfile
             
         headerList = ['date','amt','star','NaN','location']
         myfile = pd.read_csv(myfile,names=headerList,usecols=['date','amt','location'])
