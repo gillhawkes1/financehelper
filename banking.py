@@ -2,6 +2,8 @@
     #change self.groceriesKeys from list to self.purchaseKeys.grocery. 
     #ensure you can iterate correctly on list to dictionary change in groceries()
 
+    #last done: edited text return for groceries()
+
 
 
 from ensurepip import version
@@ -34,7 +36,7 @@ class banking():
         'drink': {'brewery','brewing'},
         'medical': {'dermatology'},
         'gas' : {'eleven':'7-Eleven','exxon':'Exxon','bp':'BP','shell':'Shell'},
-        'subs': {'netflix'},
+        'subs': {'netflix':'Netflix','fps':'PureSkill.gg'},
         'shopping': {'target','Target'},
         'utilities': {'water'}
     }
@@ -149,10 +151,8 @@ class banking():
             if ',' in mykeywords:
                 mykeywords = mykeywords.lower().split(',')
                 mykeywords = [i.lstrip() for i in mykeywords]
-
                 self.groceriesKeys += mykeywords
             else:
-
                 self.groceriesKeys.append(mykeywords)
         else:
             mykeywords = self.groceriesKeys
@@ -188,7 +188,6 @@ class banking():
                 newfile = input() + '.csv'
             if newfile:
                 print('newfile has been selected: '+ newfile)
-                #myfile = newfile
                 myfile = self.mypath+newfile
             
         headerList = ['date','amt','star','NaN','location']
@@ -199,10 +198,8 @@ class banking():
         mindate = datetime.strptime(min(myfile.date),'%m/%d/%Y')
         maxdate = datetime.strptime(max(myfile.date),'%m/%d/%Y')
         dayspan = abs(maxdate-mindate).days
-        weeks = round(dayspan/7,1)
-        print(weeks)
-        
-        
+        daysleft = dayspan%7
+        weeks = round(dayspan/7)
 
         for i,j in myfile.iterrows():
             j.amt = abs(j.amt)
@@ -210,11 +207,17 @@ class banking():
 
             if re.search('|'.join(self.groceriesKeys),j.location):
                 total += j.amt
+
+        msg = str(weeks) + ' weeks'
+        plural = True if daysleft > 0 and daysleft > 1 else False
+        pluraltext = ' days' if plural else ' day'
+        msg = msg if daysleft < 0 else msg + ' and ' + str(daysleft) + pluraltext
+        msg += '.'
         print('----------------------------------')
         print('Your total spending for this file for [' + ','.join(self.groceriesKeys) + '] is: ')
         print('$' + str(round(total,2)))
-        print('You spent an average of $' + str(round(total/weeks,2)) + ' per week, over a span of ' + str(weeks) + ' weeks on groceries.')
-
+        print('You spent an average of $' + str(round(total/weeks,2)) + ' per week over ' + msg)
+        
     def utilities(self):
         recentfile = self.getRecent()
         rfile = pd.read_csv(recentfile)
@@ -225,17 +228,24 @@ class banking():
         headerList = ['date','amt','star','NaN','location']
         myfile = pd.read_csv(myfile,names=headerList,usecols=['date','amt','location'])
         total = 0
+        visited = {}
+        locct = 0
 
         for i,j in myfile.iterrows():
             j.amt = abs(j.amt)
             j.location = j.location.lower()
+            
 
             if re.search('|'.join(keywords),j.location):
                 total += j.amt
+                locct += 1
+                #visited.append()
             #if(len(keywords) > 0):
             #    keyfound = keywords.find(j.location)
             #    if keyfound:
             #        print(j.location, j.amt)
+
+        
         print('----------------------------------')
         print('Your total spending for this file for [' + ','.join(keywords) + '] is: ')
         #print('$'+total)
